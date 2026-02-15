@@ -1,4 +1,3 @@
-
 def get_judge_ideas_all_prompt(idea0, idea1, topic):
     system_prompt = """
 You are a judge in a competition. Your task is to evaluate and compare two ideas based on their motivation and experiment plans. You must decide which idea is better according to the evaluation criteria provided. Be objective, avoid biases, and ensure your decision is based solely on the quality of the ideas and experiments.
@@ -27,6 +26,7 @@ Note: Avoid any position biases and ensure that the order in which the responses
 If you think idea0 is better than idea1, you should output 0. If you think idea1 is better than idea0, you should output 1.
 
 Your output should be strictly in the following JSON format:
+```json
 {{
     "Novelty_choice": {{
         "thinking_process": "Your detailed reasoning here...",
@@ -51,12 +51,10 @@ Your output should be strictly in the following JSON format:
 
     "Final_choice": <Your choice (0 or 1)>
 }}
+```
 """
 
     return system_prompt, user_prompt
-
-
-
 
 
 def split_motivation_experiment_plan(motivation_experiment_plan):
@@ -75,13 +73,13 @@ def split_motivation_experiment_plan(motivation_experiment_plan):
 
     """
 
-
     user_prompt = f"""
     Please extract the methods mentioned or implied in the motivation and experiment plan sections of the following academic paper. For each sentence, identify potential methods or techniques, whether explicitly stated or indirectly suggested.
 
     
     Your response should be in JSON format, structured as follows:
 
+    ```json
     {{
         "motivation": [
             {{
@@ -106,6 +104,7 @@ def split_motivation_experiment_plan(motivation_experiment_plan):
             ...
         ]
     }}
+    ```
     
     **Example**:
 
@@ -113,6 +112,7 @@ def split_motivation_experiment_plan(motivation_experiment_plan):
     State-of-the-art computer vision systems are trained to predict a fixed set of predetermined object categories. To handle new categories, transfer learning techniques are employed to adapt the model to new data.
 
     **Your Answer (in JSON format):**
+    ```json
     {{
         "motivation": [
             {{
@@ -135,6 +135,7 @@ def split_motivation_experiment_plan(motivation_experiment_plan):
             }}
         ]
     }}
+    ```
 
     Motivation and experiment_plan:
     {motivation_experiment_plan}
@@ -142,11 +143,6 @@ def split_motivation_experiment_plan(motivation_experiment_plan):
     """
 
     return system_prompt, user_prompt
-
-
-
-
-
 
 
 def create_experiment_evaluation_prompt(motivation, experiment_plan):
@@ -191,6 +187,7 @@ Please output your evaluation in JSON format as follows:
   "overall_score": 4,
   "overall_rationale": "The plan addresses most problems effectively, though a few minor gaps remain."
 }
+```
 """
     user_prompt = f"""
 

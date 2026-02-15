@@ -1,5 +1,6 @@
 import json
 
+
 def compare_motivation(input_motivation, option_a, option_b, option_c, option_d):
 
     system_prompt = """
@@ -21,16 +22,14 @@ Return a JSON response with:
 - C: {option_c}
 - D: {option_d}
 Provide your response in JSON format as follows:
+```json
 {{  
   "closest_option": "A",  
   "explanation": "[Input motivation] aligns with Option A because both [specific shared problem/theme/goal]. For example, [concrete similarity]."  
-}}  
+}}
+```
     """
     return system_prompt, user_prompt
-
-
-
-
 
 
 def compare_plan(input_plan, plan_a, plan_b, plan_c, plan_d):
@@ -67,31 +66,15 @@ Provide your analysis in JSON format.
 
 **Expected Output Format:**
 
+```json
 {{
   "closest_plan": "C",
   "explanation": "The input plan {input_plan} aligns with Plan C structurally through... Simultaneously, both address... [Always mention BOTH criteria]"
 }}
+```
     """
 
-
     return system_prompt, user_prompt
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def similarity_motivation_w_motivation(motivation1, motivation2):
@@ -118,13 +101,16 @@ Return a JSON object for each pair with:
 - A numeric `rating` (1–5)  
 - A concise `explanation` highlighting **specific overlaps** and **key distinctions** (1–2 sentences).  
 
-**Example Output**:  
+**Example Output**: 
+
+```json
 {{
   "motivation_similarity": {{
     "rating": 4,
     "explanation": "Both motivations address algorithmic bias in healthcare AI, but Motivation A focuses on diagnostic inaccuracies in radiology, while Motivation B emphasizes biases in patient prioritization systems."
   }}
 }}
+```
 
 **Here are the motivations:**
     - Motivation 1: {motivation1}
@@ -135,15 +121,10 @@ Return a JSON object for each pair with:
     return system_prompt, user_prompt
 
 
-
-
-
 def similarity_experiment_plan_w_experiment_plan(experiment_plan1, experiment_plan2):
     system_prompt = """
 You are an AI trained to evaluate the similarity between two experiment plans based on their structural design, theoretical foundations, and core problem focus. Ignore superficial differences like step order, naming conventions, or formatting details.
     """
-
-
 
     user_prompt = f"""
 Compare the two provided experiment plans and assess their similarity using the criteria below.  
@@ -174,12 +155,14 @@ Compare the two provided experiment plans and assess their similarity using the 
 
 **Example Output:**  
 
+```json
 {{
   "experiment_plan_similarity": {{
     "rating": 3,
     "explanation": "Both address energy efficiency (problem focus) and use quantitative metrics (structure), but Plan 1 employs machine learning (theory) while Plan 2 uses statistical modeling (theory)."
   }}
 }}
+```
 
 **Here are the Experiment Plans:**
 - Experiment Plan 1: {experiment_plan1}
@@ -188,15 +171,6 @@ Compare the two provided experiment plans and assess their similarity using the 
     """
 
     return system_prompt, user_prompt
-
-
-
-
-
-
-
-
-
 
 
 def generate_alignment_evaluation_prompts(topic, motivation, experiment_plan):
@@ -209,7 +183,7 @@ def generate_alignment_evaluation_prompts(topic, motivation, experiment_plan):
 
     After evaluating, assign a compatibility score (1-5) based on the following scoring rubric:
     """
-    
+
     # Define the user prompt
     user_prompt = f"""
     Given the research paper's topic, evaluate whether the motivation and experiment plan are aligned with the focus of the study. Provide a compatibility score from 1 to 5, where:
@@ -223,6 +197,7 @@ def generate_alignment_evaluation_prompts(topic, motivation, experiment_plan):
     Topic: {topic} Motivation: {motivation} Experiment Plan: {experiment_plan}
     Please output your evaluation in JSON format with the following structure:
 
+    ```json
     {{
       "motivation": {{
         "alignment": <score (1-5)>,
@@ -233,6 +208,7 @@ def generate_alignment_evaluation_prompts(topic, motivation, experiment_plan):
         "comments": "<concise evaluation of experiment plan's alignment with topic>"
       }}
     }}
+    ```
 
 
     Ensure the output contains the specific evaluations for the motivation, experiment plan, and an overall compatibility score.
@@ -242,8 +218,3 @@ def generate_alignment_evaluation_prompts(topic, motivation, experiment_plan):
     """
 
     return system_prompt, user_prompt
-
-
-
-
-
