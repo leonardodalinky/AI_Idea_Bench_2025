@@ -1,4 +1,3 @@
-
 def get_one_paper_input(paper_id, idea, entities, experiment) -> str:
     prompt = f"""
 Paper {paper_id}'s idea: {idea}
@@ -8,14 +7,9 @@ Paper {paper_id}'s experiment: {experiment}
     return prompt
 
 
-
-
-
-def get_deep_reference_prompt(paper_content: str,topic) -> str:
-    prompt = f"""
-You are a scientific research expert, tasked with extracting and summarizing information from provided paper content relevant to the topic: {topic}. Your deliverables will include pertinent references, extracted entities, a detailed summary, and the experimental design.
-
-The topic you are studying is: {topic}. (Ensure that the references are pertinent to this topic.)
+def get_deep_reference_system_prompt() -> str:
+    return """
+You are a scientific research expert, tasked with extracting and summarizing information from provided paper content relevant to some topic. Your deliverables will include pertinent references, extracted entities, a detailed summary, and the experimental design.
 
 Extraction Requirements:
 Entities
@@ -40,11 +34,25 @@ Experimental Content:
 
 Relevance Criteria:
 1. Method Relevance: References must directly correlate with the paper's methodology, indicating improvements or modifications.
-2. Task Relevance: References should address the same task, even if methods differ, better have the same topic {topic}.
+2. Task Relevance: References should address the same task, even if methods differ, better have the same topic.
 3. Baseline Relevance: References should serve as baselines for the methods discussed in the paper.
 4. Output Format: Provide references without author names or publication years, formatted as titles only.
 5. Specific paper titles will be placed between <References></References>. Based on the precise citation location and the corresponding ref_id in the paper, you need to infer the specific title of your output relevant references.
 
+
+Please provide the entities, summary idea, experimental design, and the three most relevant references (Sort by relevance, with priority given to new ones with the same level of relevance, do not reference the original paper.) based on the paper's content.
+
+Now please output strictly in the following format:
+<entities>{A list of entities you extract}</entities>
+<idea>{Background: ... \nNovelty: ...\nContribution:...\nMethods:...\nDetail reason:...\nLimitation:...\n }</idea>
+<experiment>{Step1:... Step2:...}</experiment>
+<references>["{Title1}", "{Title2}",  ...]</references>
+"""
+
+
+def get_deep_reference_user_prompt(paper_content: str, topic) -> str:
+    prompt = f"""
+The topic you are studying is: {topic}. (Ensure that the references are pertinent to this topic.)
 
 The paper content is as follows: 
 {paper_content}
@@ -62,15 +70,11 @@ Now please output strictly in the following format:
     return prompt
 
 
-
-
-
-
 def find_most_cite_paper():
     system_prompt = f"""
 You are an academic assistant tasked with analyzing a research paper and identifying the top most-cited references within it. For each reference, provide the title, the cited number, and the sections where the reference is cited, along with the cited number in each section.
     """
-    
+
     json_template = {
         "top_references": [
             {
@@ -79,8 +83,8 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 5,
                 "sections": [
                     {"name": "Introduction", "cited_number": 3},
-                    {"name": "Literature Review", "cited_number": 2}
-                ]
+                    {"name": "Literature Review", "cited_number": 2},
+                ],
             },
             {
                 "rank": 2,
@@ -88,8 +92,8 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 5,
                 "sections": [
                     {"name": "Methodology", "cited_number": 3},
-                    {"name": "Results", "cited_number": 2}
-                ]
+                    {"name": "Results", "cited_number": 2},
+                ],
             },
             {
                 "rank": 3,
@@ -97,8 +101,8 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 4,
                 "sections": [
                     {"name": "Literature Review", "cited_number": 2},
-                    {"name": "Discussion", "cited_number": 2}
-                ]
+                    {"name": "Discussion", "cited_number": 2},
+                ],
             },
             {
                 "rank": 4,
@@ -106,16 +110,14 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 4,
                 "sections": [
                     {"name": "Introduction", "cited_number": 3},
-                    {"name": "Conclusion", "cited_number": 1}
-                ]
+                    {"name": "Conclusion", "cited_number": 1},
+                ],
             },
             {
                 "rank": 5,
                 "title": "Advances in Supervised Learning",
                 "cited_number": 3,
-                "sections": [
-                    {"name": "Methodology", "cited_number": 3}
-                ]
+                "sections": [{"name": "Methodology", "cited_number": 3}],
             },
             {
                 "rank": 6,
@@ -123,24 +125,20 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 3,
                 "sections": [
                     {"name": "Literature Review", "cited_number": 2},
-                    {"name": "Discussion", "cited_number": 1}
-                ]
+                    {"name": "Discussion", "cited_number": 1},
+                ],
             },
             {
                 "rank": 7,
                 "title": "A Survey of Reinforcement Learning Techniques",
                 "cited_number": 2,
-                "sections": [
-                    {"name": "Introduction", "cited_number": 2}
-                ]
+                "sections": [{"name": "Introduction", "cited_number": 2}],
             },
             {
                 "rank": 8,
                 "title": "The Evolution of Neural Network Models",
                 "cited_number": 2,
-                "sections": [
-                    {"name": "Methodology", "cited_number": 2}
-                ]
+                "sections": [{"name": "Methodology", "cited_number": 2}],
             },
             {
                 "rank": 9,
@@ -148,20 +146,17 @@ You are an academic assistant tasked with analyzing a research paper and identif
                 "cited_number": 2,
                 "sections": [
                     {"name": "Literature Review", "cited_number": 1},
-                    {"name": "Results", "cited_number": 1}
-                ]
+                    {"name": "Results", "cited_number": 1},
+                ],
             },
             {
                 "rank": 10,
                 "title": "Data Mining and Its Challenges",
                 "cited_number": 1,
-                "sections": [
-                    {"name": "Conclusion", "cited_number": 1}
-                ]
-            }
+                "sections": [{"name": "Conclusion", "cited_number": 1}],
+            },
         ]
     }
-
 
     prompt = f"""
 
@@ -175,36 +170,31 @@ Please follow the following steps for analysis:
 Use the following JSON structure for the output:
 {json_template}
 """
-    
+
     return prompt, system_prompt
+
 
 def find_motivation_paper():
 
-  system_prompt = f"""
+    system_prompt = f"""
 You are an academic assistant tasked with extracting relevant sentences and references from the Introduction and Method sections of a paper.
     """
-  json_template = {
-"paper_title": "Paper Title Here",
-"motivation": [
-    {
-    "sentence": "This method is motivated by the approach presented in [Reference 1], [Reference 2].",
-    "references": [
-        "Reference 1 Paper Title",
-        "Reference 2 Paper Title"
-    ],
-    "section": 'Introduction'
-    },
-        {
-    "sentence": "This method is motivated by the approach presented in [Reference 1], [Reference 2].",
-    "references": [
-        "Reference 1 Paper Title",
-        "Reference 2 Paper Title"
-    ],
-    "section": 'Method'
+    json_template = {
+        "paper_title": "Paper Title Here",
+        "motivation": [
+            {
+                "sentence": "This method is motivated by the approach presented in [Reference 1], [Reference 2].",
+                "references": ["Reference 1 Paper Title", "Reference 2 Paper Title"],
+                "section": "Introduction",
+            },
+            {
+                "sentence": "This method is motivated by the approach presented in [Reference 1], [Reference 2].",
+                "references": ["Reference 1 Paper Title", "Reference 2 Paper Title"],
+                "section": "Method",
+            },
+        ],
     }
-]
-}
-  prompt = f"""
+    prompt = f"""
 Please read the introduction and method section of the following paper thoroughly and extract the sections where the paper explicitly states 'following', 'motivated by', or 'inspired by'. For each instance of these phrases, provide the exact sentence(s) and list all the referenced papers being cited. If there are multiple references for a single sentence, list them all by providing the following details in JSON format:. If no such sentences are found, return an empty result.
 
 Format the output in a standardized JSON structure with the following keys:
@@ -221,40 +211,38 @@ Use the following JSON structure for the output:
 {json_template}
 
 """
-  return prompt, system_prompt
+    return prompt, system_prompt
 
 
 def summary_paper():
-    
 
-  system_prompt = f"""
+    system_prompt = f"""
 You are an AI assistant tasked with summarizing research papers in a structured and clear manner.
     """
-    
-    
-  json_template = {
-  "topic": "The main research object and scope of the study",
-  "motivation": "Current state of the field, achievements, and limitations addressed by this study",
-  "method": {
-    "targeted_designs_summary": "A high-level summary of the designs or innovations made to address limitations",
-    "targeted_designs_details": [
-      {
-        "design_name": "Name of the design",
-        "description": "Detailed explanation of this design, including its purpose, how it addresses limitations, and any novel aspects (anonymized)",
-        "problems_solved": "Problem that this design solve"
-      },
-      {
-        "design_name": "Name of another design",
-        "description": "Detailed explanation of this design (anonymized)",
-        "problems_solved": "Problem that this design solve"
-      }
-    ],
-    "datasets": "Datasets used in the experiments",
-    "metrics": "Evaluation metrics used to assess the effectiveness of the approach"
-  }
-}
-    
-  prompt = f"""
+
+    json_template = {
+        "topic": "The main research object and scope of the study",
+        "motivation": "Current state of the field, achievements, and limitations addressed by this study",
+        "method": {
+            "targeted_designs_summary": "A high-level summary of the designs or innovations made to address limitations",
+            "targeted_designs_details": [
+                {
+                    "design_name": "Name of the design",
+                    "description": "Detailed explanation of this design, including its purpose, how it addresses limitations, and any novel aspects (anonymized)",
+                    "problems_solved": "Problem that this design solve",
+                },
+                {
+                    "design_name": "Name of another design",
+                    "description": "Detailed explanation of this design (anonymized)",
+                    "problems_solved": "Problem that this design solve",
+                },
+            ],
+            "datasets": "Datasets used in the experiments",
+            "metrics": "Evaluation metrics used to assess the effectiveness of the approach",
+        },
+    }
+
+    prompt = f"""
 Please summarize the following research paper by providing the following details in JSON format:
 
 1. Topic: Identify the key concepts, research questions, or objectives discussed in the paper. Summarize the main topic in one or two sentences, ensuring it captures the essence of the paper. Avoid including unnecessary details or examples.
@@ -285,11 +273,7 @@ Requirements:
 
 Here is the provided paper:
 """
-  return prompt, system_prompt
-
-
-
-
+    return prompt, system_prompt
 
 
 def refine_topic(topic, motivation):
@@ -298,13 +282,13 @@ You are an expert in academic writing and text analysis. Your task is to evaluat
 
 Provide your output in JSON format, following the instructions precisely.
     """
-    
+
     json_template_output = {
         "original_topic": "The paper introduces a novel Part Re-projection Distance Loss (PRDL) for 3D face reconstruction, leveraging facial part segmentation to improve alignment and reconstruction accuracy, especially for extreme expressions.",
         "contains_unnecessary_details": True,
-        "revised_topic": "The topic of this paper is 3D face reconstruction."
+        "revised_topic": "The topic of this paper is 3D face reconstruction.",
     }
-    
+
     prompt = f"""
 1. Carefully read the provided topic statement and motivation.
 2. Assess if the statement contains unnecessary details, such as specific methods, examples, or tangential content. Focus on identifying any overly specific explanations that don't contribute to the core subject.
@@ -331,7 +315,6 @@ Here is a motivation for reference:
     return prompt, system_prompt
 
 
-
 def create_keyword_extraction_prompt(topic):
     system_prompt = f"""
 You are an assistant specializing in extracting key, relevant keywords from a provided topic. Your goal is to identify specific keywords that directly represent the corefocus of the text. These keywords should be clear, precise, and directly linked to the topic's content. Avoid using broad, vague, or overly general terms.
@@ -344,22 +327,21 @@ Instructions:
 5. The output should be in JSON format with each keyword and its explanation as a dictionary object.
     """
 
-
-    json_template_output ={
-    "keywords": [
-        {
-            "rank": 1,
-            "keyword": "Keyword 1",
-            "explanation": "Explanation of why this keyword is the most relevant."
-        },
-        {
-            "rank": 2,
-            "keyword": "Keyword 2",
-            "explanation": "Explanation of why this keyword is the second relevant."
-        },
-        ...
-    ]
-}
+    json_template_output = {
+        "keywords": [
+            {
+                "rank": 1,
+                "keyword": "Keyword 1",
+                "explanation": "Explanation of why this keyword is the most relevant.",
+            },
+            {
+                "rank": 2,
+                "keyword": "Keyword 2",
+                "explanation": "Explanation of why this keyword is the second relevant.",
+            },
+            ...,
+        ]
+    }
 
     user_prompt = f"""
 **Input:**

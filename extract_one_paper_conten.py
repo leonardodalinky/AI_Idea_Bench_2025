@@ -1,14 +1,16 @@
-
 import os
-from SementicSearcher import SementicSearcher
-from prompt_template.process_one_paper import get_deep_reference_prompt
-import fitz
 
+import fitz
+from prompt_template.process_one_paper import (
+    get_deep_reference_system_prompt,
+    get_deep_reference_user_prompt,
+)
+from SementicSearcher import SementicSearcher
 
 
 def save_first_20_pages(input_pdf_path):
-    current_dir = './dataset_temple' # your dataset_temple path
-    output_folder = os.path.join(current_dir, 'cutpdf')
+    current_dir = "./dataset_temple"  # your dataset_temple path
+    output_folder = os.path.join(current_dir, "cutpdf")
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     file_name = os.path.basename(input_pdf_path)
@@ -17,7 +19,7 @@ def save_first_20_pages(input_pdf_path):
     doc = fitz.open(input_pdf_path)
     writer = fitz.open()
 
-    if len(doc)>20:
+    if len(doc) > 20:
         if os.path.exists(output_pdf_path):
             return output_pdf_path
         for page_num in range(min(20, len(doc))):
@@ -30,11 +32,12 @@ def save_first_20_pages(input_pdf_path):
 
 
 def get_article_idea_experiment_references_info(response):
-        entities = extract(response,"entities")
-        idea = extract(response,"idea")
-        experiment = extract(response,"experiment")
-        references = extract(response,"references")
-        return idea,experiment,entities,references
+    entities = extract(response, "entities")
+    idea = extract(response, "idea")
+    experiment = extract(response, "experiment")
+    references = extract(response, "references")
+    return idea, experiment, entities, references
+
 
 def get_content_between_a_b(start_tag, end_tag, text):
     extracted_text = ""
@@ -60,6 +63,7 @@ def extract(text, type):
     else:
         return ""
 
+
 def get_one_paper_conten(model_api, pdf_path, topic):
 
     sementicsearcher = SementicSearcher()
@@ -67,38 +71,34 @@ def get_one_paper_conten(model_api, pdf_path, topic):
     pdf_path = save_first_20_pages(pdf_path)
 
     article_dict = sementicsearcher.read_arxiv_from_path(pdf_path)
-    title,abstract,pub_data = article_dict["title"],article_dict["abstract"],article_dict["pub_date"]
-    paper = Result(title,abstract,article_dict,0,pub_data)
-    paper_conten = sementicsearcher.read_paper_content_with_ref(article_dict)
+    title, abstract, pub_data = (
+        article_dict["title"],
+        article_dict["abstract"],
+        article_dict["pub_date"],
+    )
+    paper = Result(title, abstract, article_dict, 0, pub_data)
+    paper_conten = sementicsearcher.read_paper_content_with_ref(article_dict, simplified=True)
 
-    prompt = get_deep_reference_prompt(paper_conten, topic)
+    system_prompt = get_deep_reference_system_prompt()
+    prompt = get_deep_reference_user_prompt(paper_conten, topic)
 
+    LLM_result = model_api(prompt, system_prompt=system_prompt)
 
-    LLM_result = model_api(prompt)
-
-    idea,experiment,entities,references = get_article_idea_experiment_references_info(LLM_result)
+    idea, experiment, entities, references = get_article_idea_experiment_references_info(LLM_result)
 
     data = {}
-    data['idea'] = idea
-    data['experiment'] = experiment
-    data['entities'] = entities
-    data['references'] = references
+    data["idea"] = idea
+    data["experiment"] = experiment
+    data["entities"] = entities
+    data["references"] = references
 
     return data
 
 
 class Result:
-    def __init__(self,title="",abstract="",article=None,citations_conut = 0,year = None) -> None:
+    def __init__(self, title="", abstract="", article=None, citations_conut=0, year=None) -> None:
         self.title = title
         self.abstract = abstract
         self.article = article
         self.citations_conut = citations_conut
         self.year = year
-
-
-
-    
-
-
-
-
