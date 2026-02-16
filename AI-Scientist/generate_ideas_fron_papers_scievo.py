@@ -74,6 +74,10 @@ if __name__ == "__main__":
 
     warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
+    # minimum log level to INFO
+    logger.remove()
+    logger.add(sys.stdout, level="INFO")
+
     api_key_deepseek = os.getenv("OPENAI_API_KEY")
     assert api_key_deepseek is not None, "OPENAI_API_KEY environment variable not set."
 
@@ -147,16 +151,22 @@ if __name__ == "__main__":
         else:
             append_to_json_file(cited_paper_conten_save_path, all_paper_conten, input_data["index"])
 
-        # TODO: Generate
-        workflow: IdeationWorkflow = run_ideation_workflow(
-            research_domain=topic,
-            user_query=f"Generate research ideas based on the the research topic and the following papers: \n{all_paper_input}",
-            workspace_path="./tmp_workspace",
-        )
-        research_ideas = workflow.research_ideas
-        novelty_accessments = workflow.idea_novelty_assessments
-        assert len(research_ideas) > 0, "No ideas generated."
-        assert len(novelty_accessments) > 0, "No novelty assessments generated."
+        # Generate
+        try:
+            workflow: IdeationWorkflow = run_ideation_workflow(
+                research_domain=topic,
+                user_query=f"Generate research ideas based on the the research topic and the following papers: \n{all_paper_input}",
+                workspace_path="./tmp_workspace",
+            )
+            research_ideas = workflow.research_ideas
+            novelty_accessments = workflow.idea_novelty_assessments
+            assert len(research_ideas) > 0, "No ideas generated."
+            assert len(novelty_accessments) > 0, "No novelty assessments generated."
+        except Exception as e:
+            logger.warning(
+                "Error during ideation workflow for index {}: {}", input_data["index"], e
+            )
+            continue
         novelty_accessments.sort(key=lambda x: x["novelty_score"], reverse=True)
         selected = novelty_accessments[:num_ideas]
         selected_ideas = [research_ideas[a["idea_idx"]] for a in selected]
