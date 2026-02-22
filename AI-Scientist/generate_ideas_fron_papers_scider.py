@@ -13,11 +13,11 @@ from extract_one_paper_conten import get_one_paper_conten
 from LLM.Deepseek_v3 import Deepseek
 from prompt_template.process_one_paper import get_one_paper_input
 
-if p := os.getenv("SCIEVO_DIR"):
+if p := os.getenv("SCIDER_DIR"):
     sys.path.insert(0, p)
 else:
     raise ImportError(
-        "SCIEVO_DIR environment variable not set. Please set it to the root directory of SciEvo."
+        "SCIDER_DIR environment variable not set. Please set it to the root directory of SciDER."
     )
 
 from bench_workflows.register_models.gemini import (
@@ -29,7 +29,7 @@ from bench_workflows.register_models.gpt import (
     register_gpt_low_medium_models,
     register_gpt_medium_high_models,
 )
-from scievo.workflows.ideation_workflow import IdeationWorkflow, run_ideation_workflow
+from scider.workflows.ideation_workflow import IdeationWorkflow, run_ideation_workflow
 
 
 def append_to_json_file(file_path, new_data, index):
