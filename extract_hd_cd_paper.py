@@ -21,6 +21,7 @@ from fuzzywuzzy import fuzz
 from LLM.Deepseek_v3 import Deepseek
 from prompt_template.process_one_paper import get_deep_reference_user_prompt
 from SementicSearcher import SementicSearcher
+from tqdm import tqdm
 
 
 def save_json(data, file_path):
@@ -75,11 +76,15 @@ class Result:
 
 if __name__ == "__main__":
 
-    api_key_deepseek = ""
-    base_url_kimi = ""
-    base_url_deepseek = ""
+    # api_key_deepseek = ""
+    # base_url_kimi = ""
+    # base_url_deepseek = ""
 
-    model_api = Deepseek([api_key_deepseek], base_url_deepseek)
+    # model_api = Deepseek([api_key_deepseek], base_url_deepseek)
+    api_key_deepseek = "TODO"
+    base_url_deepseek = None
+
+    model_api = Deepseek([api_key_deepseek], base_url_deepseek, model_name_deepseek="gpt-5-nano")
 
     find_cite_result_directory = "./dataset_temple/target_paper_data_w_hd_cd.json"
 
@@ -87,11 +92,13 @@ if __name__ == "__main__":
         paper_paths = json.load(f)
         f.close()
 
+    paper_paths = paper_paths[:700]
+
     cited_paper_conten_path = "./dataset_temple/hd_cd_paper_conten.json"
 
     paper_need_redownload = []
 
-    for paper_path in paper_paths:
+    for paper_path in tqdm(paper_paths):
         seed_paper_path = []
 
         paper_local_path = list(paper_path["summary"]["paper_hd_local_path"].keys())
@@ -118,7 +125,7 @@ if __name__ == "__main__":
                 try:
 
                     LLM_result = get_one_paper_conten(model_api, pdf_path, topic)
-                    hd_cd_paper_data.append({"paper_path": topic, "model_result": LLM_result})
+                    hd_cd_paper_data.append({"paper_path": pdf_path, "model_result": LLM_result})
 
                 except Exception as e:
                     print("Exception:", e)
@@ -134,7 +141,7 @@ if __name__ == "__main__":
                 if cited:
                     paper_need_redownload.append(cited)
 
-        append_to_json_file(cited_paper_conten_path, LLM_result, paper_path["index"])
+        append_to_json_file(cited_paper_conten_path, hd_cd_paper_data, paper_path["index"])
 
     paper_need_redownload_path = "paper_need_redownload.json"
 

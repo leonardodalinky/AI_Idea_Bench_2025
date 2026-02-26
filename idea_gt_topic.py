@@ -1,12 +1,9 @@
 import codecs
-
 import json
 
-
-from prompt_template.compare_gt import generate_alignment_evaluation_prompts
-
-
 from LLM.Deepseek_v5 import Deepseek
+from prompt_template.compare_gt import generate_alignment_evaluation_prompts
+from tqdm import tqdm
 
 
 def get_content_between_a_b(start_tag, end_tag, text):
@@ -30,7 +27,8 @@ def extract_json(text):
     else:
         return text
 
-def extract(text, type1, type2, hard = True):
+
+def extract(text, type1, type2, hard=True):
     if text:
         target_str = get_content_between_a_b(f"{type1}", f"{type2}", text)
         if target_str:
@@ -44,36 +42,33 @@ def extract(text, type1, type2, hard = True):
 
 
 def save_json(data, file_path):
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
 
+    api_key_deepseek = "TODO"
+    base_url_deepseek = None
 
-    api_key_deepseek = ''
-    base_url_deepseek = ''
+    model_api = Deepseek([api_key_deepseek], base_url_deepseek, model_name_deepseek="gpt-5-nano")
 
-    model_api = Deepseek([api_key_deepseek], base_url_deepseek)
-
-    topic_path = "../target_paper_data.json"
+    topic_path = "./target_paper_data.json"
     with codecs.open(topic_path, "r") as f:
         topics_ = json.load(f)
-        f.close()  
+        f.close()
     topics = {}
     for topic_ in topics_:
 
         if topic_["summary"]["revised_topic"]:
-    
-            topics[topic_['index']] = topic_["summary"]["revised_topic"]
-        
+
+            topics[topic_["index"]] = topic_["summary"]["revised_topic"]
+
         else:
 
-            topics[topic_['index']] = topic_["summary"]["topic"]
+            topics[topic_["index"]] = topic_["summary"]["topic"]
 
-
-#########################################################################################################################################        
-
+    #########################################################################################################################################
 
     AI_Scientist_path = "./model_output/AI-Scientist/final_ideas.json"
     with codecs.open(AI_Scientist_path, "r") as f:
@@ -82,25 +77,27 @@ if __name__ == "__main__":
 
     AI_Scientist = []
     AI_Scientist_final_path = "./model_output/AI-Scientist/IGT2P.json"
-    for results in AI_Scientist_:
+    for results in tqdm(AI_Scientist_):
         # AI_Scientist[result['index']] = result['model_result']
         fianl_result = []
 
-        topic = topics[results['index']]
+        topic = topics[results["index"]]
 
-        for result in results['model_result']:
-            
-            motivation = result['Motivation']
-            Experiment_Plan = result['Experiment']
+        for result in results["model_result"]:
 
-            system_prompt, user_prompt = generate_alignment_evaluation_prompts(topic, motivation, Experiment_Plan)
+            motivation = result["Motivation"]
+            Experiment_Plan = result["Experiment"]
+
+            system_prompt, user_prompt = generate_alignment_evaluation_prompts(
+                topic, motivation, Experiment_Plan
+            )
             split_result = model_api(system_prompt, user_prompt)
             # split_result = None
-            result['IGT2P'] = split_result
-            
+            result["IGT2P"] = split_result
+
             fianl_result.append(result)
-        
-        results['model_result'] = fianl_result
+
+        results["model_result"] = fianl_result
 
         AI_Scientist.append(results)
 
