@@ -20,16 +20,24 @@ else:
         "SCIDER_DIR environment variable not set. Please set it to the root directory of SciDER."
     )
 
-from bench_workflows.register_models.gemini import (
-    register_gemini3_medium_high_models,
-    register_gemini_low_medium_models,
-    register_gemini_medium_high_models,
-)
-from bench_workflows.register_models.gpt import (
-    register_gpt_low_medium_models,
-    register_gpt_medium_high_models,
-)
+from pathlib import Path
+
+from scider.default.models import register_defaults_from_yaml
 from scider.workflows.ideation_workflow import IdeationWorkflow, run_ideation_workflow
+
+# Model presets live under <SCIDER_DIR>/model_settings/presets/*.yaml.
+SCIDER_DIR = Path(os.environ["SCIDER_DIR"])
+PRESET_MAP = {
+    "gemini-low-medium": SCIDER_DIR / "model_settings" / "presets" / "gemini" / "low_medium.yaml",
+    "gemini-medium-high": SCIDER_DIR / "model_settings" / "presets" / "gemini" / "medium_high.yaml",
+    "gemini3-medium-high": SCIDER_DIR
+    / "model_settings"
+    / "presets"
+    / "gemini"
+    / "gemini3_medium_high.yaml",
+    "gpt-low-medium": SCIDER_DIR / "model_settings" / "presets" / "gpt" / "low_medium.yaml",
+    "gpt-medium-high": SCIDER_DIR / "model_settings" / "presets" / "gpt" / "medium_high.yaml",
+}
 
 
 def append_to_json_file(file_path, new_data, index):
@@ -89,17 +97,7 @@ if __name__ == "__main__":
     # Register models based on choice
     MODEL = "gemini3-medium-high"
     logger.info(f"Registering models: {MODEL}")
-    match MODEL:
-        case "gpt-low-medium":
-            register_gpt_low_medium_models()
-        case "gpt-medium-high":
-            register_gpt_medium_high_models()
-        case "gemini-low-medium":
-            register_gemini_low_medium_models()
-        case "gemini-medium-high":
-            register_gemini_medium_high_models()
-        case "gemini3-medium-high":
-            register_gemini3_medium_high_models()
+    register_defaults_from_yaml(PRESET_MAP[MODEL])
 
     #######################################################################################################################################
 
